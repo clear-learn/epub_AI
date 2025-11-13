@@ -23,7 +23,7 @@ from app.dependencies import (
     get_undrm_adapter, get_ebook_analyzer, get_start_point_detector, get_epub_parser
 )
 from app.config import get_config
-
+print('dk')
 async def main():
     """
     메인 파이프라인 실행 스크립트.
