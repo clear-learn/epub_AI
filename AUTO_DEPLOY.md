@@ -29,9 +29,12 @@
 
 ---
 
-## 📊 배포 상태 확인
+## 🔧 수동 배포 (필요 시)
 
-https://github.com/clear-learn/epub_AI/actions
+자동 배포 없이 수동으로 배포하려면:
+```bash
+./deploy-to-ec2.sh
+```
 
 ---
 
