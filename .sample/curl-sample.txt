@@ -1,0 +1,10 @@
+curl --connect-timeout 15 -X POST https://2nyrcptu31.execute-api.ap-northeast-2.amazonaws.com/v1/epub/inspect \
+    -H 'accept: application/json' \
+    -H 'Content-Type: application/json' \
+    -H 'X-API-KEY: d6794bc70718dc2ad7b4fbb5a67b46ecac2c9a103ab5a1b4ea6cd9f1ab05357f' \    -d '{
+      "s3_bucket": "ai-data-research",
+      "s3_key": "AI-EPUB-API/364721831.EPUB",
+      "itemId": "1234567890",
+      "purpose": "find_start_point",
+      "tenant_id": "docker-final-test-1030"
+    }'

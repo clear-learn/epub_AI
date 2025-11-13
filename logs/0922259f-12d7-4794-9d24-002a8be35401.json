@@ -1,0 +1,17 @@
+{
+  "event_id": "0922259f-12d7-4794-9d24-002a8be35401",
+  "tenant_id": "test-tenant",
+  "itemId": "1234567890",
+  "user_context": null,
+  "s3_bucket": "ai-data-research",
+  "s3_key": "AI-EPUB-API/364721831.EPUB",
+  "grant_id": "MOCK-GRANT-test-tenant-1234567890",
+  "action": "UNDRM",
+  "reason": "find_start_point",
+  "status": "SUCCESS",
+  "failure_reason": null,
+  "drm_type": "V2",
+  "undrm_start_time": "2025-10-28T02:03:26.413330+00:00",
+  "undrm_end_time": "2025-10-28T02:03:28.811324+00:00",
+  "event_time": "2025-10-28T02:03:26.423236+00:00"
+}

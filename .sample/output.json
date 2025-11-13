@@ -1,0 +1,8 @@
+{
+  "start_point": {
+    "start_file": "OEBPS/Text/chapter1.xhtml",
+    "anchor": null,
+    "confidence": 0.95,
+    "rationale": "목차에 부가 텍스트가 없고, 1장이 충분한 글자 수(3095자)를 가지고 있어 본문 시작으로 판단됨."
+  }
+}

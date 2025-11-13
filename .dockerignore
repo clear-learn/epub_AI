@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+
+# IDE / Editor specific
+.idea/
+.vscode/
+*.swp
+
+# OS specific
+.DS_Store
+
+# Local files
+.env
+logs/
+*.log
+output.json
+llm_input.json
+
+# Project specific
+.sample/
+.ops/
+README.md
+model_comparison_results.csv
+run_*.py
+pytest.ini
