@@ -24,7 +24,7 @@ from app.dependencies import (
 )
 from app.config import get_config
 
-
+print('안녕')
 async def main():
     """
     메인 파이프라인 실행 스크립트.
