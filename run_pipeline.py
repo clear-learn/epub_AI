@@ -24,7 +24,6 @@ from app.dependencies import (
 )
 from app.config import get_config
 
-print('안녕')
 
 async def main():
     """
