@@ -53,7 +53,7 @@ async def main():
 
         undrm_input = UndrmInput(
             encrypted_epub=encrypted_epub_bytes,
-            license_key=license_key,
+            license_예key=license_key,
             grant_id="save-decrypted",
             tenant_id="test",
         )
