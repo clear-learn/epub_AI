@@ -219,6 +219,9 @@ export function handleSummary(data) {
   const http = getMetric('http_req_duration');
   const e2e  = getMetric('end_to_end');
   const slat = getMetric('server_latency');
+  const httpReqs = getMetric('http_reqs');
+  const httpFailed = getMetric('http_req_failed{endpoint:tenant_only}');
+  const dropped = getMetric('dropped_iterations');
 
   const quick = {
     totals: {
@@ -235,8 +238,23 @@ export function handleSummary(data) {
     notes: 'book 태그(small/big)로 분리해서 p95 비교하세요.',
   };
 
+  // 원하는 형식의 결과
+  const formatted = {
+    "단계": "JSON 결과",
+    "RPS": "N/A",
+    "실효RPS": parseFloat((httpReqs.rate || 0).toFixed(2)),
+    "요청 수": httpReqs.count || 0,
+    "실패율": `${Math.round((httpFailed.rate || 0) * 100)}%`,
+    "avg": `${((http.avg || 0) / 1000).toFixed(2)}s`,
+    "p90": `${((getP(http, 90) || 0) / 1000).toFixed(2)}s`,
+    "p95": `${((getP(http, 95) || 0) / 1000).toFixed(2)}s`,
+    "최대": `${((http.max || 0) / 1000).toFixed(2)}s`,
+    "Dropped": dropped.count || 0
+  };
+
   return {
     'summary.json': JSON.stringify(data, null, 2),
     'quick-summary.json': JSON.stringify(quick, null, 2),
+    'result.json': JSON.stringify(formatted, null, 2),
   };
 }
