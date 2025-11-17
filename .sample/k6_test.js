@@ -253,8 +253,6 @@ export function handleSummary(data) {
   };
 
   return {
-    'summary.json': JSON.stringify(data, null, 2),
-    'quick-summary.json': JSON.stringify(quick, null, 2),
     'result.json': JSON.stringify(formatted, null, 2),
   };
 }
