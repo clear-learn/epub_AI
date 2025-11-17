@@ -56,7 +56,7 @@ const COMMON = { purpose: 'find_start_point' };
 
 // ───────────────────────────────────────────────────────────────────────────────
 // 소수 RPS(0.3~0.7) → 정수 target (timeUnit 확장)
-const MIN_RPS   = Number(__ENV.MIN_RPS   || 2.4);
+const MIN_RPS   = Number(__ENV.MIN_RPS   || 2.8);
 const MAX_RPS   = Number(__ENV.MAX_RPS   || 3.0);
 const RPS_STEP  = Number(__ENV.RPS_STEP  || 0.2);
 const STEP_MIN  = Number(__ENV.STEP_MIN  || 3);
