@@ -252,7 +252,13 @@ export function handleSummary(data) {
     "Dropped": dropped.count || 0
   };
 
+  // 타임스탬프 생성
+  const now = new Date();
+  const timestamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+  const localPath = `/Users/yimhaksoon/Downloads/k6_result_${timestamp}.json`;
+
   return {
     'result.json': JSON.stringify(formatted, null, 2),
+    [localPath]: JSON.stringify(formatted, null, 2),
   };
 }
