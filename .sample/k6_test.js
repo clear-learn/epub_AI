@@ -255,10 +255,18 @@ export function handleSummary(data) {
   // 타임스탬프 생성
   const now = new Date();
   const timestamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
-  const localPath = `/Users/yimhaksoon/Downloads/k6_result_${timestamp}.json`;
 
-  return {
+  // 결과 객체
+  const results = {
     'result.json': JSON.stringify(formatted, null, 2),
-    [localPath]: JSON.stringify(formatted, null, 2),
   };
+
+  // 로컬에서 실행할 때만 Downloads 폴더에도 저장
+  const saveToLocal = __ENV.SAVE_TO_LOCAL === '1' || __ENV.SAVE_TO_LOCAL === 'true';
+  if (saveToLocal) {
+    const localPath = `/Users/yimhaksoon/Downloads/k6_result_${timestamp}.json`;
+    results[localPath] = JSON.stringify(formatted, null, 2);
+  }
+
+  return results;
 }
