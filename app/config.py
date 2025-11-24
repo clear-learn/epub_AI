@@ -23,6 +23,19 @@ class Config:
         self.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
         self.OPENAI_MODEL_NAME = os.getenv("OPENAI_MODEL_NAME", "gpt-4.1-mini")
 
+        # LangSmith 설정 (옵션)
+        self.LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
+        self.LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT", "ai-epub-api")
+        self.LANGSMITH_TRACING = os.getenv("LANGSMITH_TRACING_V2", "false").lower() == "true"
+
+        # LangSmith 환경변수 설정 (langsmith 라이브러리가 읽을 수 있도록)
+        if self.LANGSMITH_API_KEY:
+            os.environ["LANGSMITH_API_KEY"] = self.LANGSMITH_API_KEY
+            os.environ["LANGSMITH_PROJECT"] = self.LANGSMITH_PROJECT
+            if self.LANGSMITH_TRACING:
+                os.environ["LANGSMITH_TRACING_V2"] = "true"
+            logging.info(f"LangSmith 트레이싱이 활성화되었습니다. (프로젝트: {self.LANGSMITH_PROJECT})")
+
         # AWS 설정
         self.AWS_PROFILE_NAME           = os.getenv("AWS_PROFILE_NAME")
         self.AWS_REGION                 = os.getenv("AWS_REGION", "ap-northeast-2")
