@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from app.clients import clients
-from app.config import get_config
+from app.dependencies import get_config
 
 logger = logging.getLogger(__name__)
 
