@@ -3,10 +3,23 @@ import json
 import logging
 from typing import List
 import math
+import os
 from openai import AsyncOpenAI, RateLimitError, APITimeoutError
 
 from app.domain.models import LlmInput, LlmStartCandidate, TocItem, FileCharStat
 from app.core.exceptions import LlmApiError, ServerConfigurationError
+
+# LangSmith 설정 (환경변수가 있을 때만 활성화)
+try:
+    from langsmith import traceable
+    LANGSMITH_AVAILABLE = bool(os.getenv("LANGSMITH_API_KEY"))
+except ImportError:
+    LANGSMITH_AVAILABLE = False
+    def traceable(*args, **kwargs):
+        """LangSmith가 없을 때 데코레이터 더미"""
+        def decorator(func):
+            return func
+        return decorator
 
 logger = logging.getLogger(__name__)
 
