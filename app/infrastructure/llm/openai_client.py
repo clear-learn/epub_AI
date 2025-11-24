@@ -63,6 +63,11 @@ class LlmClient:
         }
         return json.dumps(metadata, indent=2, ensure_ascii=False)
 
+    @traceable(
+        name="llm_suggest_start_point",
+        run_type="llm",
+        metadata={"component": "openai_client"}
+    )
     async def suggest_start(self, llm_input: LlmInput, use_full_toc_analysis: bool = True) -> LlmStartCandidate:
         if not self.client:
             raise ServerConfigurationError("OpenAI API 키가 설정되지 않아 LLM을 호출할 수 없습니다.")
