@@ -18,7 +18,6 @@ from app.core.exceptions import (
     ExternalServiceError,
 )
 from app.dependencies import (
-    get_config,
     get_ebook_analyzer,
     get_llm_client,
     get_start_point_detector,
