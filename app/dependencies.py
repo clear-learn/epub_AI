@@ -6,7 +6,7 @@
 각 계층이 필요로 하는 서비스 인스턴스를 생성하고 제공하는 책임을 가집니다.
 """
 from app.clients import clients
-from app.config import get_config, Config
+from app.config import Config
 from app.infrastructure.llm.openai_client import LlmClient
 from app.infrastructure.storage.s3_client import S3Client
 # from app.infrastructure.drm.license_service import LicenseService # KMS 기반 서비스 사용 시 주석 해제
@@ -22,6 +22,16 @@ from fastapi import Depends
 from starlette import status
 from app.domain.interfaces import ILogger, ILicenseService
 from app.core.epub_parser import EpubParser
+
+# --- Config Provider (싱글톤) ---
+_config_instance = None
+
+def get_config() -> Config:
+    global _config_instance
+    if _config_instance is None:
+        _config_instance = Config()
+    return _config_instance
+
 
 # --- Core Providers ---
 
