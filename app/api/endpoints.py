@@ -30,7 +30,6 @@ from app.application.find_start_point.services import StartPointDetector
 from app.domain.interfaces import ILogger
 from app.lifespan import lifespan
 
-get_config()
 logger = logging.getLogger(__name__)
 app = FastAPI(
     title="ai-epub-api",
