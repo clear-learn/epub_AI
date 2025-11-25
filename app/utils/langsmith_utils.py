@@ -485,7 +485,8 @@ def get_evaluation_results(
         >>> for result in results:
         ...     print(f"정확도: {result['accuracy']}, 신뢰도: {result['confidence']}")
     """
-    if not LANGSMITH_AVAILABLE or not langsmith_client:
+    client = get_langsmith_client()
+    if not client:
         return None
 
     try:
@@ -493,7 +494,7 @@ def get_evaluation_results(
         project_name = os.getenv("LANGSMITH_PROJECT", "ai-epub-api")
 
         # 실험별 run 조회
-        runs = langsmith_client.list_runs(
+        runs = client.list_runs(
             project_name=project_name,
             execution_order=1,
             filter=f'eq(name, "{experiment_name}")' if experiment_name else None
@@ -505,7 +506,7 @@ def get_evaluation_results(
                 break
 
             # 피드백 정보 수집
-            feedbacks = langsmith_client.list_feedback(run_ids=[str(run.id)])
+            feedbacks = client.list_feedback(run_ids=[str(run.id)])
             feedback_scores = {fb.key: fb.score for fb in feedbacks}
 
             results.append({
