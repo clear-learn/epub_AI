@@ -66,11 +66,11 @@ class Config:
         self.DDB_READ_TIMEOUT       = int(os.getenv("DDB_READ_TIMEOUT", "10"))
 
         # 로컬 환경: DynamoDB 테이블명은 .env에서
-        # 배포 환경: Secrets Manager에서
+        # 배포 환경: Secrets Manager에서 (없으면 기본값)
         if self.ENV == "local":
             self.DYNAMODB_LOG_TABLE_NAME = os.getenv("DYNAMODB_LOG_TABLE_NAME")
         else:
-            self.DYNAMODB_LOG_TABLE_NAME = secrets.get("DYNAMODB_LOG")
+            self.DYNAMODB_LOG_TABLE_NAME = secrets.get("DYNAMODB_LOG", "ai-epub-api-undrm-logs")
 
         # DB엔진 설정 (.env에서 로드)
         self.DB_POOL_SIZE       = int(os.getenv("DB_POOL_SIZE", "10"))
