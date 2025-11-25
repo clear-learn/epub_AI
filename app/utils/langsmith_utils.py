@@ -144,11 +144,12 @@ def create_dataset(
     Returns:
         생성된 데이터셋 ID 또는 None
     """
-    if not LANGSMITH_AVAILABLE or not langsmith_client:
+    client = get_langsmith_client()
+    if not client:
         return None
 
     try:
-        dataset = langsmith_client.create_dataset(
+        dataset = client.create_dataset(
             dataset_name=dataset_name,
             description=description
         )
@@ -177,11 +178,12 @@ def add_example_to_dataset(
     Returns:
         성공 여부
     """
-    if not LANGSMITH_AVAILABLE or not langsmith_client:
+    client = get_langsmith_client()
+    if not client:
         return False
 
     try:
-        langsmith_client.create_example(
+        client.create_example(
             inputs=inputs,
             outputs=outputs,
             dataset_name=dataset_name,
@@ -204,7 +206,7 @@ def get_run_url(run_id: str) -> Optional[str]:
     Returns:
         LangSmith 웹 URL 또는 None
     """
-    if not LANGSMITH_AVAILABLE or not langsmith_client:
+    if not is_langsmith_available():
         return None
 
     try:
@@ -229,7 +231,8 @@ def log_error_to_langsmith(
         error: 발생한 예외
         context: 에러 발생 컨텍스트
     """
-    if not LANGSMITH_AVAILABLE or not langsmith_client:
+    client = get_langsmith_client()
+    if not client:
         return
 
     try:
@@ -240,7 +243,7 @@ def log_error_to_langsmith(
         if context:
             error_info.update(context)
 
-        langsmith_client.create_feedback(
+        client.create_feedback(
             run_id=run_id,
             key="error",
             score=0.0,
