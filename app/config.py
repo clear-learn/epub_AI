@@ -79,7 +79,7 @@ class Config:
 
         # 데이터베이스 설정
         # 로컬: .env에서 DB_CONNECTION_STRING 직접 사용
-        # 배포: Secrets Manager에서 개별 값 가져와서 조합
+        # 배포: Secrets Manager에서 개별 값 가져와서 조합 (없으면 .env 폴백)
         if self.ENV == "local":
             self.DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
             self.DB_DATABASE_NAME = os.getenv("DB_DATABASE_NAME", "ai_epub_api_test")
@@ -93,11 +93,11 @@ class Config:
             if db_host and db_user and db_pass:
                 self.DB_CONNECTION_STRING = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:3306/{db_database}?charset=utf8mb4"
             else:
-                logging.error("Secrets Manager에 DB 정보가 없습니다.")
-                self.DB_CONNECTION_STRING = None
+                logging.warning("Secrets Manager에 DB 정보가 없습니다. .env 폴백을 사용합니다.")
+                self.DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
 
             self.DB_DATABASE_NAME = db_database
-            self.DB_TABLE_NAME = secrets.get("DB_TABLE", "license_keys")
+            self.DB_TABLE_NAME = secrets.get("DB_TABLE") or os.getenv("DB_TABLE_NAME", "license_keys")
 
         # LLM 프롬프트 로딩
         self._load_prompts()
