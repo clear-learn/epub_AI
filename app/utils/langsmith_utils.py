@@ -5,14 +5,16 @@ LangSmith 유틸리티 함수 및 데코레이터
 import os
 import logging
 from functools import wraps
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable, List
 
 logger = logging.getLogger(__name__)
 
 # LangSmith 가용성 확인
 try:
-    from langsmith import traceable, Client
+    from langsmith import traceable, Client, evaluate
     from langsmith.run_helpers import get_current_run_tree
+    from langsmith.evaluation import EvaluationResult
+    from langsmith.schemas import Example, Run
     LANGSMITH_AVAILABLE = bool(os.getenv("LANGSMITH_API_KEY"))
 
     if LANGSMITH_AVAILABLE:
