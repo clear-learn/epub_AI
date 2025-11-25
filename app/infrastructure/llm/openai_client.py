@@ -134,6 +134,23 @@ class LlmClient:
 
             logger.info(f"OpenAI API 응답 수신: {response_content}")
 
+            # Usage 정보를 LangSmith에 전달
+            if is_langsmith_available():
+                try:
+                    run_tree = get_current_run_tree()
+                    if run_tree and hasattr(response, 'usage'):
+                        usage = response.usage
+                        run_tree.add_metadata({
+                            "usage": {
+                                "prompt_tokens": getattr(usage, 'prompt_tokens', 0),
+                                "completion_tokens": getattr(usage, 'completion_tokens', 0),
+                                "total_tokens": getattr(usage, 'total_tokens', 0)
+                            }
+                        })
+                        logger.info(f"LangSmith에 usage 정보 전달: {usage}")
+                except Exception as e:
+                    logger.warning(f"LangSmith usage 정보 전달 실패: {e}")
+
             if not response_content:
                 raise ValueError("LLM으로부터 빈 응답을 받았습니다.")
 
