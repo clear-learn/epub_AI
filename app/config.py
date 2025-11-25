@@ -31,9 +31,9 @@ class Config:
         # Secrets Manager에서 민감 정보 로드
         secrets = self._get_secret()
 
-        # API 키 (로컬/배포 모두 Secrets Manager 사용)
+        # API 키
         self.LANGSMITH_API_KEY = secrets.get("LANGSMITH_API_KEY")
-        self.OPENAI_API_KEY = secrets.get("OPENAI_API_KEY")
+        self.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # 무조건 .env에서
         self.OPENAI_MODEL_NAME = os.getenv("OPENAI_MODEL_NAME")
 
         # LangSmith 설정
