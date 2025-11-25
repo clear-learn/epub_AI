@@ -15,17 +15,9 @@ try:
     from langsmith.run_helpers import get_current_run_tree
     from langsmith.evaluation import EvaluationResult
     from langsmith.schemas import Example, Run
-    LANGSMITH_AVAILABLE = bool(os.getenv("LANGSMITH_API_KEY"))
-
-    if LANGSMITH_AVAILABLE:
-        langsmith_client = Client()
-        logger.info("LangSmith 클라이언트가 초기화되었습니다.")
-    else:
-        langsmith_client = None
-
+    LANGSMITH_INSTALLED = True
 except ImportError:
-    LANGSMITH_AVAILABLE = False
-    langsmith_client = None
+    LANGSMITH_INSTALLED = False
 
     def traceable(*args, **kwargs):
         """LangSmith가 없을 때 데코레이터 더미"""
@@ -36,6 +28,31 @@ except ImportError:
     def get_current_run_tree():
         """LangSmith가 없을 때 더미 함수"""
         return None
+
+
+# LangSmith 클라이언트는 lazy initialization
+_langsmith_client = None
+
+def get_langsmith_client():
+    """LangSmith 클라이언트를 반환합니다. (lazy initialization)"""
+    global _langsmith_client
+
+    if not LANGSMITH_INSTALLED:
+        return None
+
+    if not os.getenv("LANGSMITH_API_KEY"):
+        return None
+
+    if _langsmith_client is None:
+        _langsmith_client = Client()
+        logger.info("LangSmith 클라이언트가 초기화되었습니다.")
+
+    return _langsmith_client
+
+
+def is_langsmith_available():
+    """LangSmith를 사용할 수 있는지 확인합니다."""
+    return LANGSMITH_INSTALLED and bool(os.getenv("LANGSMITH_API_KEY"))
 
 
 def add_langsmith_metadata(metadata: Dict[str, Any]) -> None:
