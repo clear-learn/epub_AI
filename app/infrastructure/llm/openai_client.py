@@ -77,7 +77,22 @@ class LlmClient:
             raise ServerConfigurationError("OpenAI API 키가 설정되지 않아 LLM을 호출할 수 없습니다.")
 
         user_prompt_content = self.format_input_for_llm(llm_input.toc, llm_input.file_char_counts, use_full_toc_analysis)
-        
+
+        # LangSmith 메타데이터 추가
+        if LANGSMITH_AVAILABLE:
+            try:
+                run_tree = get_current_run_tree()
+                if run_tree:
+                    run_tree.add_metadata({
+                        "model": self.model_name,
+                        "toc_count": len(llm_input.toc),
+                        "file_count": len(llm_input.file_char_counts),
+                        "use_full_toc": use_full_toc_analysis
+                    })
+                    run_tree.add_tags(["epub", "start_point_detection", f"model:{self.model_name}"])
+            except Exception as e:
+                logger.warning(f"LangSmith 메타데이터 추가 실패: {e}")
+
         logger.info(f"OpenAI API ({self.model_name}) 호출을 시작합니다...")
         response_content = ""
         try:
