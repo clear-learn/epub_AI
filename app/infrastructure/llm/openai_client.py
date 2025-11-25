@@ -13,9 +13,9 @@ from app.core.exceptions import LlmApiError, ServerConfigurationError
 try:
     from langsmith import traceable
     from langsmith.run_helpers import get_current_run_tree
-    LANGSMITH_AVAILABLE = bool(os.getenv("LANGSMITH_API_KEY"))
+    LANGSMITH_INSTALLED = True
 except ImportError:
-    LANGSMITH_AVAILABLE = False
+    LANGSMITH_INSTALLED = False
     def traceable(*args, **kwargs):
         """LangSmith가 없을 때 데코레이터 더미"""
         def decorator(func):
@@ -24,6 +24,10 @@ except ImportError:
 
     def get_current_run_tree():
         return None
+
+def is_langsmith_available():
+    """LangSmith를 사용할 수 있는지 런타임에 확인합니다."""
+    return LANGSMITH_INSTALLED and bool(os.getenv("LANGSMITH_API_KEY"))
 
 logger = logging.getLogger(__name__)
 
