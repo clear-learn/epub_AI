@@ -290,7 +290,7 @@ def run_evaluation(
         ...     experiment_prefix="epub_v1"
         ... )
     """
-    if not LANGSMITH_AVAILABLE or not langsmith_client:
+    if not is_langsmith_available():
         logger.warning("LangSmith를 사용할 수 없어 평가를 건너뜁니다.")
         return None
 
