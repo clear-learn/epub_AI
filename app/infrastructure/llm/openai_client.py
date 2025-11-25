@@ -12,6 +12,7 @@ from app.core.exceptions import LlmApiError, ServerConfigurationError
 # LangSmith 설정 (환경변수가 있을 때만 활성화)
 try:
     from langsmith import traceable
+    from langsmith.run_helpers import get_current_run_tree
     LANGSMITH_AVAILABLE = bool(os.getenv("LANGSMITH_API_KEY"))
 except ImportError:
     LANGSMITH_AVAILABLE = False
@@ -20,6 +21,9 @@ except ImportError:
         def decorator(func):
             return func
         return decorator
+
+    def get_current_run_tree():
+        return None
 
 logger = logging.getLogger(__name__)
 
