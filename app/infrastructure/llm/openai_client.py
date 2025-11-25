@@ -151,7 +151,7 @@ class LlmClient:
             )
 
             # LangSmith에 결과 메타데이터 추가
-            if LANGSMITH_AVAILABLE:
+            if is_langsmith_available():
                 try:
                     run_tree = get_current_run_tree()
                     if run_tree:
