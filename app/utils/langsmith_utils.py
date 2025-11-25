@@ -95,7 +95,7 @@ def log_langsmith_feedback(
     if not LANGSMITH_AVAILABLE or not langsmith_client:
         return
 
-    try:1
+    try:
         feedback_kwargs = {
             "run_id": run_id,
             "key": key,
