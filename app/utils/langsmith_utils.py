@@ -77,27 +77,156 @@ def log_langsmith_feedback(
     run_id: str,
     key: str,
     score: float,
-    comment: Optional[str] = None
+    comment: Optional[str] = None,
+    correction: Optional[Dict[str, Any]] = None
 ) -> None:
     """
     LangSmith에 피드백을 기록합니다.
 
     Args:
         run_id: LangSmith run ID
-        key: 피드백 키 (예: "accuracy", "relevance")
+        key: 피드백 키 (예: "accuracy", "relevance", "quality")
         score: 점수 (0.0 ~ 1.0)
         comment: 추가 코멘트
+        correction: 수정된 올바른 출력값 (선택사항)
     """
     if not LANGSMITH_AVAILABLE or not langsmith_client:
         return
 
     try:
-        langsmith_client.create_feedback(
-            run_id=run_id,
-            key=key,
-            score=score,
-            comment=comment
-        )
+        feedback_kwargs = {
+            "run_id": run_id,
+            "key": key,
+            "score": score,
+        }
+        if comment:
+            feedback_kwargs["comment"] = comment
+        if correction:
+            feedback_kwargs["correction"] = correction
+
+        langsmith_client.create_feedback(**feedback_kwargs)
         logger.info(f"LangSmith 피드백 기록 완료: {key}={score}")
     except Exception as e:
         logger.warning(f"LangSmith 피드백 기록 실패: {e}")
+
+
+def create_dataset(
+    dataset_name: str,
+    description: Optional[str] = None
+) -> Optional[str]:
+    """
+    LangSmith 데이터셋을 생성합니다.
+
+    Args:
+        dataset_name: 데이터셋 이름
+        description: 데이터셋 설명
+
+    Returns:
+        생성된 데이터셋 ID 또는 None
+    """
+    if not LANGSMITH_AVAILABLE or not langsmith_client:
+        return None
+
+    try:
+        dataset = langsmith_client.create_dataset(
+            dataset_name=dataset_name,
+            description=description
+        )
+        logger.info(f"LangSmith 데이터셋 생성 완료: {dataset_name} (ID: {dataset.id})")
+        return dataset.id
+    except Exception as e:
+        logger.warning(f"LangSmith 데이터셋 생성 실패: {e}")
+        return None
+
+
+def add_example_to_dataset(
+    dataset_name: str,
+    inputs: Dict[str, Any],
+    outputs: Dict[str, Any],
+    metadata: Optional[Dict[str, Any]] = None
+) -> bool:
+    """
+    데이터셋에 예제를 추가합니다.
+
+    Args:
+        dataset_name: 데이터셋 이름
+        inputs: 입력 데이터
+        outputs: 기대 출력 데이터
+        metadata: 추가 메타데이터
+
+    Returns:
+        성공 여부
+    """
+    if not LANGSMITH_AVAILABLE or not langsmith_client:
+        return False
+
+    try:
+        langsmith_client.create_example(
+            inputs=inputs,
+            outputs=outputs,
+            dataset_name=dataset_name,
+            metadata=metadata
+        )
+        logger.info(f"LangSmith 데이터셋에 예제 추가 완료: {dataset_name}")
+        return True
+    except Exception as e:
+        logger.warning(f"LangSmith 예제 추가 실패: {e}")
+        return False
+
+
+def get_run_url(run_id: str) -> Optional[str]:
+    """
+    LangSmith Run의 웹 URL을 생성합니다.
+
+    Args:
+        run_id: LangSmith run ID
+
+    Returns:
+        LangSmith 웹 URL 또는 None
+    """
+    if not LANGSMITH_AVAILABLE or not langsmith_client:
+        return None
+
+    try:
+        # LangSmith 웹 URL 포맷
+        project_name = os.getenv("LANGSMITH_PROJECT", "ai-epub-api")
+        return f"https://smith.langchain.com/o/default/projects/{project_name}/r/{run_id}"
+    except Exception as e:
+        logger.warning(f"LangSmith URL 생성 실패: {e}")
+        return None
+
+
+def log_error_to_langsmith(
+    run_id: str,
+    error: Exception,
+    context: Optional[Dict[str, Any]] = None
+) -> None:
+    """
+    에러를 LangSmith에 피드백으로 기록합니다.
+
+    Args:
+        run_id: LangSmith run ID
+        error: 발생한 예외
+        context: 에러 발생 컨텍스트
+    """
+    if not LANGSMITH_AVAILABLE or not langsmith_client:
+        return
+
+    try:
+        error_info = {
+            "error_type": type(error).__name__,
+            "error_message": str(error),
+        }
+        if context:
+            error_info.update(context)
+
+        langsmith_client.create_feedback(
+            run_id=run_id,
+            key="error",
+            score=0.0,
+            comment=f"Error: {type(error).__name__} - {str(error)}",
+            correction=error_info
+        )
+        logger.info(f"LangSmith에 에러 기록 완료: {type(error).__name__}")
+    except Exception as e:
+        logger.warning(f"LangSmith 에러 기록 실패: {e}")
