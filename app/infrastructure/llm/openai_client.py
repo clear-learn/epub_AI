@@ -83,7 +83,7 @@ class LlmClient:
         user_prompt_content = self.format_input_for_llm(llm_input.toc, llm_input.file_char_counts, use_full_toc_analysis)
 
         # LangSmith 메타데이터 추가
-        if LANGSMITH_AVAILABLE:
+        if is_langsmith_available():
             try:
                 run_tree = get_current_run_tree()
                 if run_tree:
