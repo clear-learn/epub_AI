@@ -129,22 +129,42 @@ class LlmClient:
                 response_content = response.output_text
 
             logger.info(f"OpenAI API 응답 수신: {response_content}")
-            
+
             if not response_content:
                 raise ValueError("LLM으로부터 빈 응답을 받았습니다.")
-                
+
             response_data = json.loads(response_content)
-            
+
             start_file = response_data.get("file")
             if not start_file:
                 raise ValueError("LLM 응답 JSON에 'file' 키가 없습니다.")
 
-            return LlmStartCandidate(
+            result = LlmStartCandidate(
                 file=start_file,
                 anchor=response_data.get("anchor", None),
                 rationale=response_data.get("rationale", "No rationale provided."),
                 confidence=response_data.get("confidence", 0.7),
             )
+
+            # LangSmith에 결과 메타데이터 추가
+            if LANGSMITH_AVAILABLE:
+                try:
+                    run_tree = get_current_run_tree()
+                    if run_tree:
+                        run_tree.add_metadata({
+                            "result_file": result.file,
+                            "result_confidence": result.confidence,
+                            "has_anchor": bool(result.anchor)
+                        })
+                        # confidence 기반 태그 추가
+                        if result.confidence >= 0.9:
+                            run_tree.add_tags(["high_confidence"])
+                        elif result.confidence < 0.5:
+                            run_tree.add_tags(["low_confidence"])
+                except Exception as e:
+                    logger.warning(f"LangSmith 결과 메타데이터 추가 실패: {e}")
+
+            return result
         except (RateLimitError, APITimeoutError) as e:
             logger.error(f"OpenAI API 속도 제한 또는 타임아웃 오류: {e}")
             raise LlmApiError("LLM 서비스가 응답하지 않거나 요청 제한에 도달했습니다.")
