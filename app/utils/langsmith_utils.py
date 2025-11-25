@@ -62,7 +62,7 @@ def add_langsmith_metadata(metadata: Dict[str, Any]) -> None:
     Args:
         metadata: 추가할 메타데이터 딕셔너리
     """
-    if not LANGSMITH_AVAILABLE:
+    if not is_langsmith_available():
         return
 
     try:
@@ -81,7 +81,7 @@ def add_langsmith_tags(tags: list[str]) -> None:
     Args:
         tags: 추가할 태그 리스트
     """
-    if not LANGSMITH_AVAILABLE:
+    if not is_langsmith_available():
         return
 
     try:
@@ -109,7 +109,8 @@ def log_langsmith_feedback(
         comment: 추가 코멘트
         correction: 수정된 올바른 출력값 (선택사항)
     """
-    if not LANGSMITH_AVAILABLE or not langsmith_client:
+    client = get_langsmith_client()
+    if not client:
         return
 
     try:
@@ -123,7 +124,7 @@ def log_langsmith_feedback(
         if correction:
             feedback_kwargs["correction"] = correction
 
-        langsmith_client.create_feedback(**feedback_kwargs)
+        client.create_feedback(**feedback_kwargs)
         logger.info(f"LangSmith 피드백 기록 완료: {key}={score}")
     except Exception as e:
         logger.warning(f"LangSmith 피드백 기록 실패: {e}")
