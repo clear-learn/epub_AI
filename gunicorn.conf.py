@@ -28,5 +28,10 @@ def post_fork(server, worker):
     """Worker가 fork된 후 Config를 로드하여 LangSmith 환경변수를 설정합니다."""
     from app.config import get_config
     config = get_config()
-    # Config에서 이미 환경변수를 설정하므로 추가 작업 불필요
-    worker.log.info(f"Worker {worker.pid}: Config 로드 완료, LangSmith API Key: {'SET' if config.LANGSMITH_API_KEY else 'NOT SET'}")
+
+    # 환경변수 확인 및 로깅
+    worker.log.info(f"Worker {worker.pid}: Config 로드 완료")
+    worker.log.info(f"Worker {worker.pid}: LANGSMITH_API_KEY: {'SET' if config.LANGSMITH_API_KEY else 'NOT SET'}")
+    worker.log.info(f"Worker {worker.pid}: LANGSMITH_API_KEY (env): {'SET' if os.getenv('LANGSMITH_API_KEY') else 'NOT SET'}")
+    worker.log.info(f"Worker {worker.pid}: LANGSMITH_TRACING_V2 (env): {os.getenv('LANGSMITH_TRACING_V2')}")
+    worker.log.info(f"Worker {worker.pid}: LANGSMITH_PROJECT (env): {os.getenv('LANGSMITH_PROJECT')}")
