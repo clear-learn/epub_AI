@@ -33,14 +33,34 @@ def is_langsmith_available():
 logger = logging.getLogger(__name__)
 
 class LlmClient:
-    def __init__(self, client: AsyncOpenAI, model_name: str, system_prompt: str, user_prompt_template: str):
-        self.client = client
+    def __init__(self, client, model_name: str, system_prompt: str, user_prompt_template: str):
+        """
+        LangChain 기반 LLM 클라이언트
+
+        Args:
+            client: AsyncOpenAI 클라이언트 (하위 호환성 유지, 내부적으로는 LangChain 사용)
+            model_name: 사용할 모델 이름
+            system_prompt: 시스템 프롬프트
+            user_prompt_template: 사용자 프롬프트 템플릿
+        """
+        self.legacy_client = client  # 하위 호환성을 위해 유지
         self.model_name = model_name
         self.system_prompt = system_prompt
         self.user_prompt_template = user_prompt_template
-        
-        if not self.client:
-            logger.warning("AsyncOpenAI 클라이언트가 제공되지 않았습니다. LLM 관련 기능이 비활성화됩니다.")
+
+        # LangChain ChatOpenAI 클라이언트 생성
+        if LANGCHAIN_INSTALLED and os.getenv("OPENAI_API_KEY"):
+            self.llm = ChatOpenAI(
+                model=model_name,
+                temperature=0.3,
+                model_kwargs={
+                    "response_format": {"type": "json_object"}
+                }
+            )
+            logger.info(f"LangChain ChatOpenAI 클라이언트가 생성되었습니다. (model: {model_name})")
+        else:
+            self.llm = None
+            logger.warning("LangChain이 설치되지 않았거나 OpenAI API 키가 없습니다. LLM 기능이 제한됩니다.")
 
     def format_input_for_llm(self, toc: List[TocItem], file_stats: List[FileCharStat], use_full_toc_analysis: bool = True) -> str:
         """LLM에 전달할 메타데이터를 TOC와 파일 통계를 병합하여 JSON 문자열로 포맷합니다."""
