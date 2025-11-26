@@ -44,8 +44,8 @@ async def find_start_point(
         
         analysis = await analyzer.analyze_async(decrypted_epub)
 
-        if not llm_client.client:
-            raise ServerConfigurationError("이 기능은 OpenAI API 키가 필요합니다.")
+        if not llm_client.llm:
+            raise ServerConfigurationError("이 기능은 LangChain ChatOpenAI 클라이언트가 필요합니다.")
         
         llm_input = LlmInput(toc=analysis.toc, file_char_counts=analysis.file_char_counts)
         llm_candidate = await llm_client.suggest_start(llm_input, use_full_toc_analysis=use_full_toc_analysis)
