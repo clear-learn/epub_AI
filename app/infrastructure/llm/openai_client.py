@@ -4,20 +4,21 @@ import logging
 from typing import List
 import math
 import os
-from openai import AsyncOpenAI, RateLimitError, APITimeoutError
 
 from app.domain.models import LlmInput, LlmStartCandidate, TocItem, FileCharStat
 from app.core.exceptions import LlmApiError, ServerConfigurationError
 
-# LangSmith 설정 (환경변수가 있을 때만 활성화)
+# LangChain 및 LangSmith 설정
 try:
+    from langchain_openai import ChatOpenAI
     from langsmith import traceable
     from langsmith.run_helpers import get_current_run_tree
-    LANGSMITH_INSTALLED = True
+    LANGCHAIN_INSTALLED = True
 except ImportError:
-    LANGSMITH_INSTALLED = False
+    LANGCHAIN_INSTALLED = False
+    ChatOpenAI = None
     def traceable(*args, **kwargs):
-        """LangSmith가 없을 때 데코레이터 더미"""
+        """LangChain/LangSmith가 없을 때 데코레이터 더미"""
         def decorator(func):
             return func
         return decorator
@@ -27,7 +28,7 @@ except ImportError:
 
 def is_langsmith_available():
     """LangSmith를 사용할 수 있는지 런타임에 확인합니다."""
-    return LANGSMITH_INSTALLED and bool(os.getenv("LANGSMITH_API_KEY"))
+    return LANGCHAIN_INSTALLED and bool(os.getenv("LANGSMITH_API_KEY"))
 
 logger = logging.getLogger(__name__)
 
