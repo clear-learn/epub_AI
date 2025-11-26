@@ -146,15 +146,21 @@ class LlmClient:
                         completion_tokens = getattr(usage, 'output_tokens', getattr(usage, 'completion_tokens', 0))
                         total_tokens = getattr(usage, 'total_tokens', 0)
 
+                        # LangSmith run에 직접 토큰 수 설정 (비용 계산에 필요)
+                        run_tree.prompt_tokens = prompt_tokens
+                        run_tree.completion_tokens = completion_tokens
+                        run_tree.total_tokens = total_tokens
+
+                        # 모델 이름도 메타데이터에 추가
                         run_tree.add_metadata({
+                            "model": self.model_name,
                             "usage": {
                                 "prompt_tokens": prompt_tokens,
                                 "completion_tokens": completion_tokens,
                                 "total_tokens": total_tokens
-                            },
-                            "model": self.model_name
+                            }
                         })
-                        logger.info(f"LangSmith에 usage 정보 전달: prompt={prompt_tokens}, completion={completion_tokens}, total={total_tokens}")
+                        logger.info(f"LangSmith에 usage 정보 전달: prompt={prompt_tokens}, completion={completion_tokens}, total={total_tokens}, model={self.model_name}")
                 except Exception as e:
                     logger.warning(f"LangSmith usage 정보 전달 실패: {e}")
 
