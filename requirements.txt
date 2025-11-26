@@ -23,5 +23,5 @@ pymysql
 aiobotocore
 gunicorn
 langsmith
-langchain
+langchain워
 langchain-openai
