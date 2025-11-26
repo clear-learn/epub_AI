@@ -140,14 +140,21 @@ class LlmClient:
                     run_tree = get_current_run_tree()
                     if run_tree and hasattr(response, 'usage'):
                         usage = response.usage
+                        # Responses API는 input_tokens/output_tokens 사용
+                        # LangSmith는 prompt_tokens/completion_tokens 기대
+                        prompt_tokens = getattr(usage, 'input_tokens', getattr(usage, 'prompt_tokens', 0))
+                        completion_tokens = getattr(usage, 'output_tokens', getattr(usage, 'completion_tokens', 0))
+                        total_tokens = getattr(usage, 'total_tokens', 0)
+
                         run_tree.add_metadata({
                             "usage": {
-                                "prompt_tokens": getattr(usage, 'prompt_tokens', 0),
-                                "completion_tokens": getattr(usage, 'completion_tokens', 0),
-                                "total_tokens": getattr(usage, 'total_tokens', 0)
-                            }
+                                "prompt_tokens": prompt_tokens,
+                                "completion_tokens": completion_tokens,
+                                "total_tokens": total_tokens
+                            },
+                            "model": self.model_name
                         })
-                        logger.info(f"LangSmith에 usage 정보 전달: {usage}")
+                        logger.info(f"LangSmith에 usage 정보 전달: prompt={prompt_tokens}, completion={completion_tokens}, total={total_tokens}")
                 except Exception as e:
                     logger.warning(f"LangSmith usage 정보 전달 실패: {e}")
 
