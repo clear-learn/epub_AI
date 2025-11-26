@@ -98,8 +98,8 @@ class LlmClient:
         metadata={"component": "openai_client"}
     )
     async def suggest_start(self, llm_input: LlmInput, use_full_toc_analysis: bool = True) -> LlmStartCandidate:
-        if not self.client:
-            raise ServerConfigurationError("OpenAI API 키가 설정되지 않아 LLM을 호출할 수 없습니다.")
+        if not self.llm:
+            raise ServerConfigurationError("LangChain ChatOpenAI 클라이언트가 초기화되지 않았습니다.")
 
         user_prompt_content = self.format_input_for_llm(llm_input.toc, llm_input.file_char_counts, use_full_toc_analysis)
 
@@ -118,72 +118,20 @@ class LlmClient:
             except Exception as e:
                 logger.warning(f"LangSmith 메타데이터 추가 실패: {e}")
 
-        logger.info(f"OpenAI API ({self.model_name}) 호출을 시작합니다...")
-        response_content = ""
+        logger.info(f"LangChain ChatOpenAI ({self.model_name}) 호출을 시작합니다...")
+
         try:
-            if self.model_name.startswith('gpt-5'):
-                # GPT-5 계열 리즈닝 API 호출
-                payload = {
-                    "model": self.model_name,
-                    "input": [
-                        {"role": "developer", "content": [{"type": "input_text", "text": self.system_prompt}]},
-                        {"role": "user", "content": [{"type": "input_text", "text": user_prompt_content}]},
-                    ],
-                    "text": {"format": {"type": "json_object"}, "verbosity": "low"},
-                    "reasoning": {"effort": "minimal"},
-                }
-                response = await self.client.responses.create(**payload)
-                
-                if hasattr(response, "output_text") and response.output_text:
-                    response_content = response.output_text
-                elif hasattr(response, "output"):
-                    parts = [o.get("text", "") for o in response.output if o.get("type") == "output_text"]
-                    response_content = "\n".join(parts).strip()
+            # LangChain을 통한 OpenAI 호출 (자동으로 LangSmith에 트레이싱됨)
+            messages = [
+                ("system", self.system_prompt),
+                ("human", user_prompt_content)
+            ]
 
-            else:
-                # 기존 GPT-4.1 계열 API 호출
-                response = await self.client.responses.create(
-                    model=self.model_name,
-                    input=[
-                        {"role": "system", "content": self.system_prompt},
-                        {"role": "user", "content": user_prompt_content},
-                    ],
-                    text={"format": {"type": "json_object"}, "verbosity": "medium"},
-                    temperature=0.3,
-                )
-                response_content = response.output_text
+            # ainvoke를 사용하여 비동기 호출
+            response = await self.llm.ainvoke(messages)
+            response_content = response.content
 
-            logger.info(f"OpenAI API 응답 수신: {response_content}")
-
-            # Usage 정보를 LangSmith에 전달
-            if is_langsmith_available():
-                try:
-                    run_tree = get_current_run_tree()
-                    if run_tree and hasattr(response, 'usage'):
-                        usage = response.usage
-                        # Responses API는 input_tokens/output_tokens 사용
-                        # LangSmith는 prompt_tokens/completion_tokens 기대
-                        prompt_tokens = getattr(usage, 'input_tokens', getattr(usage, 'prompt_tokens', 0))
-                        completion_tokens = getattr(usage, 'output_tokens', getattr(usage, 'completion_tokens', 0))
-                        total_tokens = getattr(usage, 'total_tokens', 0)
-
-                        # LangSmith run에 직접 토큰 수 설정 (비용 계산에 필요)
-                        run_tree.prompt_tokens = prompt_tokens
-                        run_tree.completion_tokens = completion_tokens
-                        run_tree.total_tokens = total_tokens
-
-                        # 모델 이름도 메타데이터에 추가
-                        run_tree.add_metadata({
-                            "model": self.model_name,
-                            "usage": {
-                                "prompt_tokens": prompt_tokens,
-                                "completion_tokens": completion_tokens,
-                                "total_tokens": total_tokens
-                            }
-                        })
-                        logger.info(f"LangSmith에 usage 정보 전달: prompt={prompt_tokens}, completion={completion_tokens}, total={total_tokens}, model={self.model_name}")
-                except Exception as e:
-                    logger.warning(f"LangSmith usage 정보 전달 실패: {e}")
+            logger.info(f"LangChain OpenAI 응답 수신 완료")
 
             if not response_content:
                 raise ValueError("LLM으로부터 빈 응답을 받았습니다.")
@@ -219,13 +167,15 @@ class LlmClient:
                 except Exception as e:
                     logger.warning(f"LangSmith 결과 메타데이터 추가 실패: {e}")
 
+            logger.info(f"LLM 처리 완료: file={result.file}, confidence={result.confidence}")
             return result
-        except (RateLimitError, APITimeoutError) as e:
-            logger.error(f"OpenAI API 속도 제한 또는 타임아웃 오류: {e}")
-            raise LlmApiError("LLM 서비스가 응답하지 않거나 요청 제한에 도달했습니다.")
-        except (json.JSONDecodeError, ValueError) as e:
-            logger.error(f"LLM 응답 파싱 실패: {e}\n응답 내용: {response_content}")
+
+        except json.JSONDecodeError as e:
+            logger.error(f"LLM 응답 파싱 실패: {e}\n응답 내용: {response_content if 'response_content' in locals() else 'N/A'}")
             raise LlmApiError("LLM으로부터 유효하지 않은 형식의 응답을 받았습니다.")
+        except ValueError as e:
+            logger.error(f"LLM 응답 검증 실패: {e}")
+            raise LlmApiError(str(e))
         except Exception as e:
             logger.exception(f"LLM API 호출 중 예상치 못한 오류 발생: {e}")
-            raise LlmApiError(f"LLM API 호출 중 예상치 못한 오류가 발생했습니다.")
+            raise LlmApiError(f"LLM API 호출 중 예상치 못한 오류가 발생했습니다: {str(e)}")
